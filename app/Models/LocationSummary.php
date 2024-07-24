@@ -6,9 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DailyAttendanceRecord extends Model
+class LocationSummary extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'date', 'is_present'];
+    protected $fillable = [
+        'attendance_summary_id',
+        'location_id',
+        'minutes'
+    ];
 }

@@ -18,43 +18,45 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-        //
+       ///
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(CreateAttendanceRequest $request)
     {
-        $validatedData = $request->validated();
+        $data = $request->validated();
+
         try {
             DB::beginTransaction();
 
-        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
+            foreach ($data as $validatedData) {
+                $currentDate = Carbon::now('Asia/Tehran')->toDateString();
 
-        // ترکیب تاریخ جاری با زمان‌های ورودی
-        $entryDateTime = $validatedData['entry_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['entry_time'], 'Asia/Tehran') : null;
-        $exitDateTime =  $validatedData['exit_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['exit_time'], 'Asia/Tehran') : null;
+                $entryDateTime = $validatedData['entry_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['entry_time'], 'Asia/Tehran') : null;
+                $exitDateTime = $validatedData['exit_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['exit_time'], 'Asia/Tehran') : null;
 
-        // چک کردن نهایی بودن رکوردهای قبلی کاربر در روز جاری
-        $userRecords = AttendanceRecord::where('user_id', auth()->id())
-            ->whereDate('created_at', $currentDate)
-            ->get();
+                $userRecords = AttendanceRecord::where('user_id', auth()->id())
+                    ->whereDate('created_at', $currentDate)
+                    ->get();
 
-        foreach ($userRecords as $record) {
-            if ($record->is_finalized) {
-                return response()->json(['error' => 'You cannot add a new entry/exit because one of your records has been finalized.'], 403);
+                foreach ($userRecords as $record) {
+                    if ($record->is_finalized) {
+                        return response()->json(['error' => 'شما نمیتوانید تاریخ و ورود خروجی ثبت کنید به علت ثبت نهایی کردن'], 403);
+                    }
+                }
+
+                AttendanceRecord::create([
+                    'user_id' => auth()->id(),
+                    'entry_time' => $entryDateTime,
+                    'exit_time' => $exitDateTime,
+                    'location_id' => $validatedData['location_id'],
+                    'work_type_id' => $validatedData['work_type_id'],
+                    'report' => $validatedData['report'],
+                ]);
             }
-        }
-        // ثبت ورود و خروج جدید
-         AttendanceRecord::create([
-            'user_id' => auth()->id(),
-            'entry_time' => $entryDateTime,
-            'exit_time' => $exitDateTime,
-            'location_id' =>  $validatedData['location_id'],
-            'work_type_id' =>  $validatedData['work_type_id'],
-            'report' =>  $validatedData['report'],
-        ]);
 
             DB::commit();
             return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
@@ -65,12 +67,30 @@ class AttendanceController extends Controller
         }
     }
 
+
+
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request)
     {
-        //
+        try {
+            DB::beginTransaction();
+        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
+        $date = $request->input('date') ?? $currentDate ;
+
+        $userId = auth()->id();
+
+        $attendanceRecords = AttendanceRecord::where('user_id', $userId)
+            ->whereDate('created_at', $date)
+            ->get();
+
+            DB::commit();
+        return response()->json($attendanceRecords, 200);
+            } catch (\Exception $exception) {
+        Log::error($exception);
+        return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
+        }
     }
 
     /**
@@ -79,37 +99,32 @@ class AttendanceController extends Controller
     public function update(UpdateAttendanceRequest $request, $id)
     {
         $validatedData = $request->validated();
+
         try {
-            DB::beginTransaction();
-            $user = auth()->user();
-            $record = AttendanceRecord::findOrFail($id);
+            $attendanceRecord = AttendanceRecord::findOrFail($id);
 
-
-            // چک کردن نهایی بودن رکورد
-            if ($record->is_finalized && !$user->hasAnyAdminRole()) {
-                return response()->json(['error' => 'You cannot update a finalized record.'], 403);
+            if ($attendanceRecord->is_finalized) {
+                return response()->json(['error' => 'شما نمیتوانید رکورد نهایی شده را ویرایش کنید'], 403);
             }
 
+            if ($attendanceRecord->user_id !== auth()->id()) {
+                return response()->json(['error' => 'شما مجاز به ویرایش این رکورد نیستید'], 403);
+            }
 
             $currentDate = Carbon::now('Asia/Tehran')->toDateString();
+            $entryDateTime = $validatedData['entry_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['entry_time'], 'Asia/Tehran') : null;
+            $exitDateTime = $validatedData['exit_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['exit_time'], 'Asia/Tehran') : null;
 
-            // ترکیب تاریخ جاری با زمان‌های ورودی
-            $entryDateTime = $validatedData['entry_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['entry_time'], 'Asia/Tehran') : $record->entry_time;
-            $exitDateTime = $validatedData['exit_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['exit_time'], 'Asia/Tehran') : $record->exit_time;
-
-            // به روزرسانی رکورد
-            $record->update([
-                'entry_time' => $entryDateTime ?? $record->entry_time,
-                'exit_time' => $exitDateTime ?? $record->exit_time,
-                'location_id' =>  $validatedData['location_id'] ?? $record->location_id,
-                'work_type_id' =>  $validatedData['work_type_id'] ?? $record->work_type_id,
-                'report' =>  $validatedData['report'] ?? $record->report,
-                'is_finalized' => $validatedData['is_finalized'] ?? $record->is_finalized
+            $attendanceRecord->update([
+                'entry_time' => $entryDateTime ?? $attendanceRecord['entry_time'],
+                'exit_time' => $exitDateTime ?? $attendanceRecord['exit_time'],
+                'location_id' => $validatedData['location_id'] ?? $attendanceRecord['location_id'],
+                'work_type_id' => $validatedData['work_type_id'] ?? $attendanceRecord['work_type_id'],
+                'report' => $validatedData['report'] ?? $attendanceRecord['report'],
             ]);
-            DB::commit();
-            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت بروزرسانی شد'], 200);
+
+            return response()->json(['message' => 'رکورد با موفقیت به‌روزرسانی شد'], 200);
         } catch (\Exception $exception) {
-            DB::rollBack();
             Log::error($exception);
             return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
         }
@@ -117,53 +132,88 @@ class AttendanceController extends Controller
 
 
 
-    public function finalize()
+
+    public function finalize(Request $request)
     {
-        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
+        try {
+            DB::beginTransaction();
+
+            $currentDate = Carbon::now('Asia/Tehran')->toDateString();
+            $date = $request->input('date') ?? $currentDate ;
+            $userId = auth()->id();
+
+            // دریافت رکوردهای کاربر در تاریخ مشخص شده
+            $records = AttendanceRecord::where('user_id', $userId)
+                ->whereDate('created_at', $date)
+                ->get();
+
+            if ($records->isEmpty()) {
+                return response()->json(['error' => 'هیچ رکوردی برای نهایی کردن یافت نشد.'], 404);
+            }
+
+            foreach ($records as $record) {
+                if ($record->is_finalized) {
+                    continue; // اگر رکورد قبلاً نهایی شده باشد، به آن دست نزنید
+                }
+                $record->is_finalized = true;
+                $record->save();
+            }
+            event(new AttendanceFinalized($userId, $currentDate, $records));
+
+            DB::commit();
+            return response()->json(['message' => 'رکوردها با موفقیت نهایی شدند'], 200);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
+        }
+    }
+
+/*    public function finalizeAllUnfinalized(Request $request)
+    {
         $userId = auth()->id();
-        $userRecords = AttendanceRecord::where('user_id', $userId)
-            ->whereDate('created_at', $currentDate)
+
+        // دریافت تمام رکوردهای غیر نهایی کاربر
+        $records = AttendanceRecord::where('user_id', $userId)
+            ->where('is_finalized', false)
             ->get();
-        // چک کردن اینکه آیا رکوردی برای نهایی شدن وجود دارد یا خیر
-        if ($userRecords->isEmpty()) {
-            return response()->json(['error' => 'هیچ رکوردی برای نهایی شدن یافت نشد.'], 404);
+
+        if ($records->isEmpty()) {
+            return response()->json(['error' => 'هیچ رکورد غیر نهایی برای نهایی کردن یافت نشد.'], 404);
         }
 
-        // چک کردن و به روز رسانی فقط رکوردهای روز جاری
-        foreach ($userRecords as $record) {
-            $record->update(['is_finalized' => true]);
-            event(new AttendanceFinalized($record));
+        foreach ($records as $record) {
+            $record->is_finalized = true;
+            $record->save();
         }
 
-        return response()->json(['message' => 'رکوردهای روز جاری با موفقیت نهایی شد.'], 200);
-    }
+        return response()->json(['message' => 'تمام رکوردهای غیر نهایی با موفقیت نهایی شدند'], 200);
+    }*/
 
-
-    public function getCurrentDayRecords()
-    {
-        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
-        $userRecords = AttendanceRecord::where('user_id', auth()->id())
-            ->whereDate('entry_time', $currentDate)
-            ->get();
-
-        return response()->json($userRecords);
-    }
-
-    public function getPreviousRecords()
-    {
-        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
-        $userRecords = AttendanceRecord::where('user_id', auth()->id())
-            ->whereDate('entry_time', '<', $currentDate)
-            ->get();
-
-        return response()->json($userRecords);
-    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $attendanceRecord = AttendanceRecord::findOrFail($id);
+
+            if ($attendanceRecord->is_finalized) {
+                return response()->json(['error' => 'شما نمیتوانید رکورد نهایی شده را حذف کنید'], 403);
+            }
+
+            if ($attendanceRecord->user_id !== auth()->id()) {
+                return response()->json(['error' => 'شما مجاز به حذف این رکورد نیستید'], 403);
+            }
+
+            $attendanceRecord->delete();
+
+            return response()->json(['message' => 'رکورد با موفقیت حذف شد'], 200);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
+        }
     }
+
 }

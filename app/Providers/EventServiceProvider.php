@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\AttendanceFinalized;
 use App\Listeners\MoveAttendanceToHours;
+use App\Listeners\ProcessAttendanceFinalized;
 use App\Models\AttendanceRecord;
 use App\Observers\AttendanceRecordObserver;
 use Illuminate\Auth\Events\Registered;
@@ -23,7 +24,7 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         AttendanceFinalized::class => [
-            MoveAttendanceToHours::class,
+            ProcessAttendanceFinalized::class,
         ],
     ];
 
@@ -33,8 +34,6 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         parent::boot();
-        AttendanceRecord::observe(AttendanceRecordObserver::class);
-
     }
 
     /**

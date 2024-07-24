@@ -23,6 +23,8 @@ class WorkTypesTableSeeder extends Seeder
             ['name' => 'نصب شیشه'],
             ['name' => 'نصب فرم'],
             ['name' => 'جوشکاری'],
+            ['name' => 'تخلیه و بارگیری شیشه'],
+            ['name' => 'رنگ کاری'],
             ['name' => 'سایر'],
         ];
 

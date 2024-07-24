@@ -1,37 +1,34 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDailyAttendanceRecordsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
-        Schema::create('daily_attendance_records', function (Blueprint $table) {
-            $table->id();
+        Schema::create('attendance_summaries', function (Blueprint $table) {
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->date('date');
-            $table->boolean('is_present')->default(true);
-            $table->timestamps();
+            $table->json('attendance_details');
+            $table->integer('total_minutes');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unique(['user_id', 'date']);
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('daily_attendance_records');
+        Schema::dropIfExists('attendance_summaries');
     }
-}
-
+};

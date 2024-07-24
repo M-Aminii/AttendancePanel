@@ -11,11 +11,15 @@ class AttendanceFinalized
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $attendanceRecord;
+    public $userId;
+    public $date;
+    public $records;
 
-    public function __construct(AttendanceRecord $attendanceRecord)
+    public function __construct($userId, $date, $records)
     {
-        $this->attendanceRecord = $attendanceRecord;
+        $this->userId = $userId;
+        $this->date = $date;
+        $this->records = $records;
     }
 }
 

@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class HoursAttendanceRecord extends Model
+class AttendanceSummary extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'date', 'attendance_details', //'is_finalized'
+        'user_id',
+        'date',
+        'attendance_details',
+        'total_minutes'
     ];
 
-    protected $casts = [
-        'attendance_details' => 'array',
-    ];
 
     public function user()
     {
