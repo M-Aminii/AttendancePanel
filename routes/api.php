@@ -38,7 +38,7 @@ Route::group(['middleware' => ['auth:api'],'prefix' => 'Personnel'], function ()
         Route::get('/list', [AttendanceController::class, 'index']);
         Route::patch('/{id}', [AttendanceController::class, 'update']);
         Route::get('/', [AttendanceController::class, 'show']);
-        Route::patch('/', [AttendanceController::class, 'finalize']);
+        Route::patch('/finalize/{id}', [AttendanceController::class, 'finalize']);
         Route::delete('/{id}', [AttendanceController::class, 'destroy']);
     });
 

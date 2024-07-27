@@ -22,11 +22,12 @@ class CreateAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            '*.entry_time' => 'required|date_format:H:i',
-            '*.exit_time' => 'required|date_format:H:i|after:*.entry_time',
-            '*.location_id' => 'required|exists:locations,id',
-            '*.work_type_id' => 'nullable|exists:work_types,id',
-            '*.report' => 'nullable|string',
+            'records' => 'required|array',
+            'records.*.entry_time' => 'required|date_format:H:i',
+            'records.*.exit_time' => 'nullable|date_format:H:i',
+            'records.*.location_id' => 'required|integer',
+            'records.*.work_type_id' => 'required|integer',
+            'records.*.report' => 'nullable|string',
         ];
     }
 }

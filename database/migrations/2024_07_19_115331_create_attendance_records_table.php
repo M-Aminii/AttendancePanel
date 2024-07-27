@@ -13,19 +13,25 @@ return new class extends Migration
     {
         Schema::create('attendance_records', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('key');
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('attendance_id');
             $table->time('entry_time');
             $table->time('exit_time');
             $table->unsignedBigInteger('location_id');
             $table->unsignedBigInteger('work_type_id')->nullable();
             $table->text('report')->nullable();
-            $table->boolean('is_finalized')->default(false);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 
             $table->foreign('user_id')
                 ->references('id')
                 ->on('users')
+                ->onDelete('cascade');
+
+            $table->foreign('attendance_id')
+                ->references('id')
+                ->on('attendance')
                 ->onDelete('cascade');
 
             $table->foreign('location_id')

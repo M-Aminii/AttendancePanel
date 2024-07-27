@@ -5,7 +5,7 @@ namespace App\Listeners;
 
 use App\Events\AttendanceFinalized;
 use App\Models\AttendanceSummary;
-use App\Models\LocationSummary;
+use App\Models\LocationAttendance;
 use Carbon\Carbon;
 
 class ProcessAttendanceFinalized
@@ -50,7 +50,7 @@ class ProcessAttendanceFinalized
 
         // ذخیره اطلاعات مکان‌ها در جدول جداگانه
         foreach ($locationMinutes as $locationId => $minutes) {
-            LocationSummary::create([
+            LocationAttendance::create([
                 'attendance_summary_id' => $attendanceSummary->id,
                 'location_id' => $locationId,
                 'minutes' => $minutes,

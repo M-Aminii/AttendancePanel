@@ -10,7 +10,7 @@ class AttendanceRecord extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'entry_time', 'exit_time', 'location_id', 'work_type_id', 'report', 'is_finalized'
+        'key','user_id','attendance_id', 'entry_time', 'exit_time', 'location_id', 'work_type_id', 'report',
     ];
 
     protected $casts = [
@@ -18,6 +18,11 @@ class AttendanceRecord extends Model
         'exit_time' => 'datetime',
         'is_finalized' => 'boolean',
     ];
+
+    public function attendance()
+    {
+        return $this->belongsTo(Attendance::class);
+    }
 
     public function user()
     {
