@@ -24,7 +24,7 @@ class AttendanceController extends Controller
     {
         $userId = auth()->id();
         // بارگذاری تمامی رکوردهای حضور و غیاب به همراه رکوردهای مربوطه
-        $attendances = Attendance::with('records')->where('user_id',$userId)->get();
+        $attendances = Attendance::with(['records.location', 'records.workType'])->where('user_id', $userId)->get();
 
         // استفاده از AttendanceResource برای فرمت‌دهی داده‌ها
         return AttendanceResource::collection($attendances);
@@ -123,39 +123,7 @@ class AttendanceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   /* public function update(UpdateAttendanceRequest $request, $id)
-    {
-        $validatedData = $request->validated();
 
-        try {
-            $attendanceRecord = AttendanceRecord::findOrFail($id);
-
-            if ($attendanceRecord->is_finalized) {
-                return response()->json(['error' => 'شما نمیتوانید رکورد نهایی شده را ویرایش کنید'], 403);
-            }
-
-            if ($attendanceRecord->user_id !== auth()->id()) {
-                return response()->json(['error' => 'شما مجاز به ویرایش این رکورد نیستید'], 403);
-            }
-
-            $currentDate = Carbon::now('Asia/Tehran')->toDateString();
-            $entryDateTime = $validatedData['entry_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['entry_time'], 'Asia/Tehran') : null;
-            $exitDateTime = $validatedData['exit_time'] ? Carbon::createFromFormat('Y-m-d H:i', $currentDate . ' ' . $validatedData['exit_time'], 'Asia/Tehran') : null;
-
-            $attendanceRecord->update([
-                'entry_time' => $entryDateTime ?? $attendanceRecord['entry_time'],
-                'exit_time' => $exitDateTime ?? $attendanceRecord['exit_time'],
-                'location_id' => $validatedData['location_id'] ?? $attendanceRecord['location_id'],
-                'work_type_id' => $validatedData['work_type_id'] ?? $attendanceRecord['work_type_id'],
-                'report' => $validatedData['report'] ?? $attendanceRecord['report'],
-            ]);
-
-            return response()->json(['message' => 'رکورد با موفقیت به‌روزرسانی شد'], 200);
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
-        }
-    }*/
 
     public function update(Request $request, string $id)
     {
@@ -274,26 +242,6 @@ class AttendanceController extends Controller
         }
     }
 
-/*    public function finalizeAllUnfinalized(Request $request)
-    {
-        $userId = auth()->id();
-
-        // دریافت تمام رکوردهای غیر نهایی کاربر
-        $records = AttendanceRecord::where('user_id', $userId)
-            ->where('is_finalized', false)
-            ->get();
-
-        if ($records->isEmpty()) {
-            return response()->json(['error' => 'هیچ رکورد غیر نهایی برای نهایی کردن یافت نشد.'], 404);
-        }
-
-        foreach ($records as $record) {
-            $record->is_finalized = true;
-            $record->save();
-        }
-
-        return response()->json(['message' => 'تمام رکوردهای غیر نهایی با موفقیت نهایی شدند'], 200);
-    }*/
 
 
     /**
@@ -301,7 +249,7 @@ class AttendanceController extends Controller
      */
     public function destroy($id)
     {
-        try {
+        /*try {
             $attendanceRecord = AttendanceRecord::findOrFail($id);
 
             if ($attendanceRecord->is_finalized) {
@@ -318,7 +266,7 @@ class AttendanceController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
-        }
+        }*/
     }
 
 }

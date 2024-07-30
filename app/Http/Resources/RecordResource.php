@@ -19,8 +19,8 @@ class RecordResource extends JsonResource
             'id' => $this->id,
             'entry_time' => Jalalian::forge($this->entry_time)->format('H:i'),
             'exit_time' => Jalalian::forge($this->exit_time)->format('H:i'),
-            'location_id' => $this->location_id,
-            'work_type_id' => $this->work_type_id,
+            'location' => new LocationResource($this->whenLoaded('location')),
+            'work_type' => new WorkTypeResource($this->whenLoaded('workType')),
             'report' => $this->report,
             // سایر فیلدهای AttendanceRecord
         ];

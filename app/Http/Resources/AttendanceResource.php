@@ -17,6 +17,7 @@ class AttendanceResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'user' => $this->user_id,
             //'attendance_details' => json_decode($this->attendance_details),
             'updated_at' => Jalalian::fromCarbon($this->updated_at)->format('Y/m/d'),

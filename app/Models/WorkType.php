@@ -11,7 +11,7 @@ class WorkType extends Model
 
     protected $fillable = ['name'];
 
-    public function attendanceRecords()
+    public function records()
     {
         return $this->hasMany(AttendanceRecord::class);
     }
