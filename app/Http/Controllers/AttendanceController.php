@@ -99,24 +99,18 @@ class AttendanceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request)
+    public function show(string $id)
     {
         try {
-            DB::beginTransaction();
-        $currentDate = Carbon::now('Asia/Tehran')->toDateString();
-        $date = $request->input('date') ?? $currentDate ;
+                DB::beginTransaction();
+                 $attendances = Attendance::with(['records.location', 'records.workType'])->where('id', $id)->get();
 
-        $userId = auth()->id();
+                DB::commit();
+                return AttendanceResource::collection($attendances);
 
-        $attendanceRecords = AttendanceRecord::where('user_id', $userId)
-            ->whereDate('created_at', $date)
-            ->get();
-
-            DB::commit();
-        return response()->json($attendanceRecords, 200);
-            } catch (\Exception $exception) {
-        Log::error($exception);
-        return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
+                    } catch (\Exception $exception) {
+                Log::error($exception);
+                return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
         }
     }
 
@@ -125,11 +119,10 @@ class AttendanceController extends Controller
      */
 
 
-    public function update(Request $request, string $id)
+    public function update(UpdateAttendanceRequest $request, string $id)
     {
         // یافتن رکورد حضور
         $attendance = Attendance::findOrFail($id);
-
         // بررسی اینکه آیا رکورد برای همان کاربر است یا خیر
         if ($attendance->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
