@@ -14,14 +14,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable , HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'last_name',
@@ -35,83 +29,52 @@ class User extends Authenticatable implements JWTSubject
         'about_me',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'status' => UserStatus::class,
-        'gender'=> UserGender::class,
     ];
-
 
     public function hasAnyAdminRole(): bool
     {
         return $this->hasAnyRole(['super-admin']);
     }
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
     public function getJWTCustomClaims()
     {
         return [];
     }
 
-    // Accessor
+    // Accessor for gender
     public function getGenderAttribute($value)
     {
-        return new UserGender($value);
+        return UserGender::from($value);
     }
 
-    // Mutator
+    // Mutator for gender
     public function setGenderAttribute($value)
     {
-        if ($value instanceof UserGender) {
-            $this->attributes['gender'] = $value->value;
-        } else {
-            $this->attributes['gender'] = (new UserGender($value))->value;
-        }
-    }
-    // Accessor
-    public function getStatusAttribute($value)
-    {
-        return new UserStatus($value);
+        $this->attributes['gender'] = $value instanceof UserGender ? $value->value : UserGender::from($value)->value;
     }
 
-    // Mutator
+    // Accessor for status
+    public function getStatusAttribute($value)
+    {
+        return UserStatus::from($value);
+    }
+
+    // Mutator for status
     public function setStatusAttribute($value)
     {
-        if ($value instanceof UserStatus) {
-            $this->attributes['status'] = $value->value;
-        } else {
-            $this->attributes['status'] = (new UserStatus($value))->value;
-        }
+        $this->attributes['status'] = $value instanceof UserStatus ? $value->value : UserStatus::from($value)->value;
     }
 }

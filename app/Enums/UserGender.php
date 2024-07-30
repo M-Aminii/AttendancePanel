@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Enums;
 
 use Spatie\Enum\Enum;
@@ -29,5 +28,3 @@ final class UserGender extends Enum
         ];
     }
 }
-
-

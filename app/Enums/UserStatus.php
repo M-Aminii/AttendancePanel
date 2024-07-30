@@ -1,9 +1,7 @@
 <?php
-
 namespace App\Enums;
 
 use Spatie\Enum\Enum;
-
 
 /**
  * @method static self active()
@@ -30,4 +28,3 @@ final class UserStatus extends Enum
         ];
     }
 }
-
