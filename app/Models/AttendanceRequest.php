@@ -5,11 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Attendance extends Model
+class AttendanceRequest extends Model
 {
-    protected $table ='attendance';
-    protected $fillable = ['user_id','attendance_date','attendance_details','total_minutes','is_finalized'];
+    use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'attendance_date',
+        'attendance_details',
+        'status',
+    ];
 
     protected $casts = [
         'attendance_details' => 'array',
@@ -18,9 +23,5 @@ class Attendance extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-    public function records()
-    {
-        return $this->hasMany(AttendanceRecord::class);
     }
 }

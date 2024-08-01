@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 
 class UserDTO
 {
-
     public $name;
     public $last_name;
     public $mobile;
@@ -20,12 +19,6 @@ class UserDTO
     public $avatar;
     public $about_me;
 
-
-
-
-
-
-
     public function __construct(array $data)
     {
         $this->name = $data['name'];
@@ -33,10 +26,10 @@ class UserDTO
         $this->mobile = $data['mobile'];
         $this->email = $data['email'] ?? null;
         $this->username = $data['username'] ?? null;
-        $this->status =$data['status'] ?? UserStatus::ACTIVE;
-        $this->gender =$data['gender'] ?? UserGender::GENDER_MAN;
+        $this->status = $data['status'] ?? UserStatus::ACTIVE;
+        $this->gender = $data['gender'] ?? UserGender::GENDER_MAN;
         $this->password = $data['password'];
-        $this->avatar = $this->saveAvatar($data['avatar']) ?? null;
+        $this->avatar = array_key_exists('avatar', $data) ? $this->saveAvatar($data['avatar']) : null;
         $this->about_me = $data['about_me'] ?? null;
     }
 
@@ -44,11 +37,11 @@ class UserDTO
     {
         if ($avatar) {
             $fileName = time() . Str::random(10) . '-avatar';
-            $path = public_path('users/'.auth()->id());
+            $path = public_path('users/' . auth()->id());
             $avatar->move($path, $fileName);
             return $fileName;
         }
         return null;
     }
-
 }
+

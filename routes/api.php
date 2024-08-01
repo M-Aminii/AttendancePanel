@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceRequestController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -40,6 +41,15 @@ Route::group(['middleware' => ['auth:api'],'prefix' => 'Personnel'], function ()
         Route::get('/{id}', [AttendanceController::class, 'show']);
         Route::patch('/finalize/{id}', [AttendanceController::class, 'finalize']);
         Route::delete('/{id}', [AttendanceController::class, 'destroy']);
+    });
+
+    Route::group(['prefix' => '/attendance_request'], function () {
+        Route::post('/', [AttendanceRequestController::class, 'store']);
+        Route::get('/list', [AttendanceRequestController::class, 'index']);
+        Route::patch('/{id}', [AttendanceRequestController::class, 'update']);
+        Route::get('/{id}', [AttendanceRequestController::class, 'show']);
+        Route::patch('/status/{id}', [AttendanceRequestController::class, 'changeStatus']);
+
     });
 
 });

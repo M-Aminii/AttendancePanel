@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\AttendanceApproved;
 use App\Events\AttendanceFinalized;
+use App\Listeners\HandleAttendanceApproved;
 use App\Listeners\MoveAttendanceToHours;
 use App\Listeners\ProcessAttendanceFinalized;
 use App\Models\AttendanceRecord;
@@ -26,6 +28,9 @@ class EventServiceProvider extends ServiceProvider
         /*AttendanceFinalized::class => [
             ProcessAttendanceFinalized::class,
         ],*/
+        AttendanceApproved::class => [
+            HandleAttendanceApproved::class,
+        ],
     ];
 
     /**

@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\DTO\UserDTO;
 use App\Enums\UserStatus;
-use App\Events\UserCreated;
 use App\Http\Requests\User\CreateUserRequest;
-use App\Http\Requests\User\UpdateInvoiceRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
-use App\Services\FilterService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -56,6 +53,7 @@ class UserController extends Controller
 
     public function store(CreateUserRequest $request)
     {
+
         try {
             DB::beginTransaction();
             $userDTO = new UserDTO($request->validated());

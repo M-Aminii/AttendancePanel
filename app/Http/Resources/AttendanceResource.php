@@ -20,7 +20,8 @@ class AttendanceResource extends JsonResource
             'id' => $this->id,
             'user' => $this->user_id,
             //'attendance_details' => json_decode($this->attendance_details),
-            'updated_at' => Jalalian::fromCarbon($this->updated_at)->format('Y/m/d'),
+            'attendance_date'=>$jalaliDate = Jalalian::fromDateTime($this->attendance_date)->format('Y/m/d'),
+            //'updated_at' => Jalalian::fromCarbon($this->updated_at)->format('Y/m/d'),
             'records' => RecordResource::collection($this->whenLoaded('records')),
         ];
     }

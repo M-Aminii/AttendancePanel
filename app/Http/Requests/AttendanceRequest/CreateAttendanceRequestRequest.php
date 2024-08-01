@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Attendance;
+namespace App\Http\Requests\AttendanceRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateAttendanceRequest extends FormRequest
+class CreateAttendanceRequestRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,10 @@ class CreateAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'attendance_date' => 'required|string',
             'records' => 'required|array',
             'records.*.entry_time' => 'required|date_format:H:i:s',
-            'records.*.exit_time' => 'nullable|date_format:H:i:s',
+            'records.*.exit_time' => 'required|date_format:H:i:s',
             'records.*.location_id' => 'required|integer',
             'records.*.work_type_id' => 'required|integer',
             'records.*.report' => 'nullable|string',
