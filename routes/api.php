@@ -27,12 +27,14 @@ Route::group(['prefix' => 'auth'], function () {
 
 Route::group(['middleware' => ['auth:api'],'prefix' => 'Personnel'], function () {
 
+
     Route::group(['prefix' => '/user'], function () {
         Route::post('/', [UserController::class, 'store']);
         Route::get('/list', [UserController::class, 'index']);
         Route::get('/{id}', [UserController::class, 'show']);
         Route::patch('/{id}', [UserController::class, 'update']);
     });
+
 
     Route::group(['prefix' => '/attendance'], function () {
         Route::post('/', [AttendanceController::class, 'store']);
@@ -42,6 +44,7 @@ Route::group(['middleware' => ['auth:api'],'prefix' => 'Personnel'], function ()
         Route::patch('/finalize/{id}', [AttendanceController::class, 'finalize']);
         Route::delete('/{id}', [AttendanceController::class, 'destroy']);
     });
+
 
     Route::group(['prefix' => '/attendance_request'], function () {
         Route::post('/', [AttendanceRequestController::class, 'store']);
