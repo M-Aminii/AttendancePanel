@@ -23,10 +23,13 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
         // بارگذاری تمامی رکوردهای حضور و غیاب به همراه رکوردهای مربوطه
-        $attendances = Attendance::with(['records.location', 'records.workType'])->where('user_id', $userId)->get();
-
+        if( $user->hasAnyAdminRole()){
+            $attendances = Attendance::with(['records.location', 'records.workType'])->get();
+        }else{
+            $attendances = Attendance::with(['records.location', 'records.workType'])->where('user_id', $user->id)->get();
+        }
         // استفاده از AttendanceResource برای فرمت‌دهی داده‌ها
         return AttendanceResource::collection($attendances);
     }
@@ -160,7 +163,6 @@ class AttendanceController extends Controller
 
         try {
             DB::beginTransaction();
-
             // تنظیم تاریخ میلادی امروز
             $currentDate = Carbon::now()->toDateString();
 
@@ -219,14 +221,20 @@ class AttendanceController extends Controller
      */
     public function show(string $id)
     {
+        $user = auth()->user();
+
         try {
-                DB::beginTransaction();
-                 $attendances = Attendance::with(['records.location', 'records.workType'])->where('id', $id)->get();
+            if ($user->hasAnyAdminRole()) {
+                // اگر کاربر ادمین بود، هر آیدی که فرستاده شد را نمایش می‌دهیم
+                $attendances = Attendance::with(['records.location', 'records.workType'])->where('id', $id)->get();
+            } else {
+                // اگر کاربر عادی بود، فقط آیتم‌های مربوط به خودش را نمایش می‌دهیم
+                $attendances = Attendance::with(['records.location', 'records.workType'])->where('id', $id)->where('user_id', $user->id)->get();
+            }
 
-                DB::commit();
-                return AttendanceResource::collection($attendances);
+            return AttendanceResource::collection($attendances);
 
-                    } catch (\Exception $exception) {
+              } catch (\Exception $exception) {
                 Log::error($exception);
                 return response()->json(['message' => 'خطایی به وجود آمده است: ' . $exception->getMessage()], 500);
         }

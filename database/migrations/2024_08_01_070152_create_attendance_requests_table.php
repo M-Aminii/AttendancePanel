@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\َAttendanceRequestsStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->date('attendance_date');
             $table->json('attendance_details');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', َAttendanceRequestsStatus::toArray())->default(َAttendanceRequestsStatus::pending());
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 

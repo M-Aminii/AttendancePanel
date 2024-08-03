@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\َAttendanceRequestsStatus;
 use App\Events\AttendanceApproved;
 use App\Http\Requests\AttendanceRequest\CreateAttendanceRequestRequest;
 use App\Http\Requests\AttendanceRequest\UpdateAttendanceRequestRequest;
@@ -41,6 +42,15 @@ class AttendanceRequestController extends Controller
         $jalaliDate = $data['attendance_date'];
         $gregorianDate = CalendarUtils::createCarbonFromFormat('Y/m/d', $jalaliDate)->toDateString();
 
+        // بررسی وجود درخواست دیگر برای همین تاریخ
+        $existingRequest = AttendanceRequest::where('attendance_date', $gregorianDate)
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if ($existingRequest) {
+            return response()->json(['message' => 'در همین تاریخ درخواست دیگری ثبت شده است.'], 400);
+        }
+
         $attendanceRequest = AttendanceRequest::create([
             'user_id' => Auth::id(),
             'attendance_date' => $gregorianDate,
@@ -49,6 +59,7 @@ class AttendanceRequestController extends Controller
 
         return response()->json(['message' => 'درخواست حضور و غیاب با موفقیت ثبت شد'], 201);
     }
+
 
     /**
      * Display the specified resource.
@@ -68,7 +79,7 @@ class AttendanceRequestController extends Controller
         $attendanceRequest = AttendanceRequest::findOrFail($id);
 
         // بررسی اینکه آیا رکورد برای همان کاربر است یا خیر و وضعیت در انتظار است
-        if ($attendanceRequest->user_id !== Auth::id() || $attendanceRequest->status !== 'pending') {
+        if ($attendanceRequest->user_id !== Auth::id() || $attendanceRequest->status !== َAttendanceRequestsStatus::PENDING ) {
             return response()->json(['message' => 'Unauthorized or request is not pending'], 403);
         }
 
@@ -96,7 +107,7 @@ class AttendanceRequestController extends Controller
     {
         $user = Auth::user();
         if (!$user->hasAnyAdminRole()){
-            return response()->json(['message' => 'دسترسی تغییر وضعیت به شما داده نشده است.'], 403);
+            return response()->json(['message' => 'شما مجاز به تغییر وضعیت کاربر نیستید.'], 403);
         }
 
         $attendanceRequest = AttendanceRequest::findOrFail($id);
@@ -105,11 +116,13 @@ class AttendanceRequestController extends Controller
             'status' => 'required|in:approved,rejected',
         ]);
 
-        $attendanceRequest->update(['status' => $data['status']]);
+        // بررسی وضعیت قبلی
+        if ($attendanceRequest->status !== $data['status']) {
+            $attendanceRequest->update(['status' => $data['status']]);
 
-        if ($data['status'] === 'approved') {
-
-            event(new AttendanceApproved($attendanceRequest));
+            if ($data['status'] === َAttendanceRequestsStatus::APPROVED) {
+                event(new AttendanceApproved($attendanceRequest));
+            }
         }
 
         return response()->json(['message' => 'وضعیت درخواست با موفقیت تغییر کرد'], 200);

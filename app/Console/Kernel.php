@@ -13,7 +13,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // اجرای Job هر شب در ساعت 23:59
-        $schedule->job(new \App\Jobs\FinalizeAttendanceJob)->dailyAt('23:59');
+        $schedule->command('attendance:finalize')->everyMinute();
+
+        // اجرای Job هر شب در ساعت 23:59
+        //$schedule->command('attendance:finalize')->dailyAt('23:59');
     }
 
     /**
