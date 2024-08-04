@@ -15,4 +15,5 @@ class WorkType extends Model
     {
         return $this->hasMany(AttendanceRecord::class);
     }
+
 }

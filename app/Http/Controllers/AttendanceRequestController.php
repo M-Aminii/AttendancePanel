@@ -6,6 +6,7 @@ use App\Enums\َAttendanceRequestsStatus;
 use App\Events\AttendanceApproved;
 use App\Http\Requests\AttendanceRequest\CreateAttendanceRequestRequest;
 use App\Http\Requests\AttendanceRequest\UpdateAttendanceRequestRequest;
+use App\Http\Resources\AttendanceRequestResource;
 use App\Models\AttendanceRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,12 +29,9 @@ class AttendanceRequestController extends Controller
             $requests = AttendanceRequest::where('user_id', Auth::id())->get();
         }
 
-        // تبدیل attendance_details از JSON به آرایه
-        $requests->each(function ($request) {
-            $request->attendance_details = json_decode($request->attendance_details, true);
-        });
+        // استفاده از AttendanceResource برای فرمت‌دهی داده‌ها
+        return AttendanceRequestResource::collection($requests);
 
-        return response()->json($requests);
     }
 
     /**
@@ -71,7 +69,18 @@ class AttendanceRequestController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = Auth::user();
+
+        if ($user->hasAnyAdminRole()) {
+            // مدیر تمامی درخواست‌ها را می‌بیند
+            $requests = AttendanceRequest::where('id', $id)->get();
+        } else {
+            // کاربران عادی فقط درخواست‌های خود را می‌بینند
+            $requests = AttendanceRequest::where('user_id', Auth::id())->where('id', $id)->get();
+        }
+
+        // استفاده از AttendanceResource برای فرمت‌دهی داده‌ها
+        return AttendanceRequestResource::collection($requests);
     }
 
     /**
