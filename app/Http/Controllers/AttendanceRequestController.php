@@ -28,6 +28,11 @@ class AttendanceRequestController extends Controller
             $requests = AttendanceRequest::where('user_id', Auth::id())->get();
         }
 
+        // تبدیل attendance_details از JSON به آرایه
+        $requests->each(function ($request) {
+            $request->attendance_details = json_decode($request->attendance_details, true);
+        });
+
         return response()->json($requests);
     }
 

@@ -222,7 +222,6 @@ class AttendanceController extends Controller
     public function show(string $id)
     {
         $user = auth()->user();
-
         try {
             if ($user->hasAnyAdminRole()) {
                 // اگر کاربر ادمین بود، هر آیدی که فرستاده شد را نمایش می‌دهیم

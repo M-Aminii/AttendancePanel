@@ -24,8 +24,8 @@ class CreateAttendanceRequestRequest extends FormRequest
         return [
             'attendance_date' => 'required|string',
             'records' => 'required|array',
-            'records.*.entry_time' => 'required|date_format:H:i:s',
-            'records.*.exit_time' => 'required|date_format:H:i:s',
+            'records.*.entry_time' => 'required|date_format:H:i',
+            'records.*.exit_time' => 'required|date_format:H:i',
             'records.*.location_id' => 'required|integer',
             'records.*.work_type_id' => 'required|integer',
             'records.*.report' => 'nullable|string',
