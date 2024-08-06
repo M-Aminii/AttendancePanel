@@ -5,55 +5,53 @@ namespace App\Observers;
 
 use App\Events\AttendanceFinalized;
 
+use App\Models\Attendance;
+use App\Models\AttendanceRecord;
 use Carbon\Carbon;
 
 class AttendanceRecordObserver
 {
-    public  function handle(AttendanceFinalized $event)
-{
-    $userId = $event->userId;
-    $date = $event->date;
-    $records = $event->records;
+    public function creating(AttendanceRecord $record)
+    {
+        // پیدا کردن حضور مربوط به روز قبلی
+        $previousAttendance = Attendance::where('user_id', $record->user_id)
+            ->where('attendance_date', '<', Carbon::today())
+            ->where('is_finalized', false)
+            ->first();
 
-    $timesData = [];
-    $locationMinutes = [];
-    $totalMinutes = 0;
+        if ($previousAttendance) {
+            // به‌روزرسانی وضعیت نهایی حضور
+            $previousAttendance->update(['is_finalized' => true]);
 
-    foreach ($records as $record) {
-        $entryTime = Carbon::parse($record->entry_time);
-        $exitTime = Carbon::parse($record->exit_time);
-        $duration = $entryTime->diffInMinutes($exitTime);
+            // محاسبه مجموع دقایق حضور برای هر مکان
+            $locationMinutes = [];
+            $totalMinutes = 0;
 
-        $timesData[] = [
-            'entry_time' => $entryTime->toTimeString(),
-            'exit_time' => $exitTime->toTimeString(),
-            'location_id' => $record->location_id,
-            'work_type_id' => $record->work_type_id
-        ];
+            foreach ($previousAttendance->records as $rec) {
+                if (!isset($locationMinutes[$rec->location_id])) {
+                    $locationMinutes[$rec->location_id] = 0;
+                }
 
-        $locationId = $record->location_id;
-        if (!isset($locationMinutes[$locationId])) {
-            $locationMinutes[$locationId] = 0;
+                $entryTime = strtotime($rec->entry_time);
+                $exitTime = strtotime($rec->exit_time);
+                $minutes = ($exitTime - $entryTime) / 60;
+
+                $locationMinutes[$rec->location_id] += $minutes;
+                $totalMinutes += $minutes;
+            }
+
+            // ذخیره‌سازی در جدول location_attendances
+            foreach ($locationMinutes as $locationId => $minutes) {
+                \App\Models\LocationAttendance::create([
+                    'attendance_id' => $previousAttendance->id,
+                    'location_id' => $locationId,
+                    'minutes' => $minutes,
+                ]);
+            }
+
+            // به‌روزرسانی فیلد total_minutes در جدول attendance
+            $previousAttendance->update(['total_minutes' => $totalMinutes]);
         }
-        $locationMinutes[$locationId] += $duration;
-        $totalMinutes += $duration;
     }
 
-    // ذخیره اطلاعات در جدول خلاصه‌ی کلی ساعات
-    $attendanceSummary = AttendanceSummary::create([
-        'user_id' => $userId,
-        'date' => $date,
-        'times_json' => json_encode($timesData),
-        'total_minutes' => $totalMinutes,
-    ]);
-
-    // ذخیره اطلاعات مکان‌ها در جدول جداگانه
-    foreach ($locationMinutes as $locationId => $minutes) {
-        LocationSummary::create([
-            'attendance_summary_id' => $attendanceSummary->id,
-            'location_id' => $locationId,
-            'minutes' => $minutes,
-        ]);
-    }
-}
 }
