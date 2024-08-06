@@ -157,7 +157,7 @@ class AttendanceController extends Controller
         }
     }*/
 
-    public function store(CreateAttendanceRequest $request)
+   /* public function store(CreateAttendanceRequest $request)
     {
         $data = $request->validated();
 
@@ -213,7 +213,87 @@ class AttendanceController extends Controller
             Log::error('Attendance store error: '.$exception->getMessage());
             return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
         }
+    }*/
+    public function store(CreateAttendanceRequest $request)
+    {
+        $data = $request->validated();
+
+        try {
+            DB::beginTransaction();
+            // تنظیم تاریخ میلادی امروز
+            $currentDate = Carbon::now()->toDateString();
+
+            // بررسی موجود بودن رکورد حضور برای کاربر در همان روز
+            $existingAttendance = Attendance::where('user_id', auth()->id())
+                ->whereDate('attendance_date', $currentDate)
+                ->first();
+
+            if ($existingAttendance) {
+                return response()->json(['message' => 'ساعت ورود و خروج امروز از قبل ثبت شده است.'], 409);
+            }
+
+            $jsonData = json_encode($request->records);
+
+            // ایجاد رکورد جدید در جدول attendance
+            $attendance = Attendance::create([
+                'user_id' => auth()->id(),
+                'attendance_details' => $jsonData,
+                'attendance_date' => $currentDate,
+                'is_finalized' => false,
+            ]);
+
+            foreach ($data['records'] as $validatedData) {
+                $entryTime = $validatedData['entry_time'];
+                $exitTime = $validatedData['exit_time'];
+
+                // بررسی هم‌پوشانی با زمان‌های موجود
+                $overlap = AttendanceRecord::where('attendance_id', $attendance->id)
+                    ->where(function ($query) use ($entryTime, $exitTime) {
+                        $query->where(function ($query) use ($entryTime, $exitTime) {
+                            $query->where('entry_time', '<', $entryTime)
+                                ->where('exit_time', '>', $entryTime);
+                        })
+                            ->orWhere(function ($query) use ($entryTime, $exitTime) {
+                                $query->where('entry_time', '<', $exitTime)
+                                    ->where('exit_time', '>', $exitTime);
+                            })
+                            ->orWhere(function ($query) use ($entryTime, $exitTime) {
+                                $query->where('entry_time', '>=', $entryTime)
+                                    ->where('exit_time', '<=', $exitTime);
+                            });
+                    })
+                    ->exists();
+
+                if ($overlap) {
+                    return response()->json(['message' => 'زمان های وارد شده با هم تداخل دارند.'], 409);
+                }
+
+                // محاسبه مقدار key برای رکورد جدید
+                $currentMaxKey = AttendanceRecord::where('attendance_id', $attendance->id)->max('key');
+                $newKey = $currentMaxKey ? $currentMaxKey + 1 : 1;
+
+                AttendanceRecord::create([
+                    'attendance_id' => $attendance->id,
+                    'user_id' => auth()->id(),
+                    'key' => $newKey,
+                    'entry_time' => $entryTime,
+                    'exit_time' => $exitTime,
+                    'location_id' => $validatedData['location_id'],
+                    'work_type_id' => $validatedData['work_type_id'],
+                    'report' => $validatedData['report'],
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            // Log the exception for further investigation
+            Log::error('Attendance store error: '.$exception->getMessage());
+            return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
+        }
     }
+
 
 
     /**

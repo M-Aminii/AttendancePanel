@@ -48,7 +48,6 @@ class FinalizeAttendanceJob implements ShouldQueue
                     $exitTime = strtotime($record->exit_time);
                     $minutes = ($exitTime - $entryTime) / 60;
 
-
                     $locationMinutes[$record->location_id] += $minutes;
                     $totalMinutes += $minutes;
                 }
@@ -61,11 +60,9 @@ class FinalizeAttendanceJob implements ShouldQueue
                         'minutes' => $minutes,
                     ]);
                 }
-
                 // به‌روزرسانی فیلد total_minutes در جدول attendance
                 $attendance->update(['total_minutes' => $totalMinutes]);
             }
-
             DB::commit();
             Log::info('Attendance records finalized and location attendances calculated successfully.');
         } catch (\Exception $e) {
