@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\LocationStatus;
 use App\Models\Location;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -20,12 +21,12 @@ class LocationsTableSeeder extends Seeder
         }
 
         $Locations = [
-            ['name' => 'دفتر شرکت'],
-            ['name' => 'کارگاه چوب'],
-            ['name' => 'پروژه A'],
-            ['name' => 'پروژه B'],
-            ['name' => 'پروژه C'],
-            ['name' => 'پروژه D'],
+            ['user_id'=>1,'name' => 'دفتر شرکت','status'=>LocationStatus::ACTIVE],
+            ['user_id'=>1,'name' => 'کارگاه چوب','status'=>LocationStatus::ACTIVE],
+            ['user_id'=>1,'name' => 'پروژه A','status'=>LocationStatus::ACTIVE],
+            ['user_id'=>1,'name' => 'پروژه B','status'=>LocationStatus::ACTIVE],
+            ['user_id'=>1,'name' => 'پروژه C','status'=>LocationStatus::ACTIVE],
+            ['user_id'=>1,'name' => 'پروژه D','status'=>LocationStatus::ACTIVE],
         ];
 
         foreach ($Locations as $Location) {

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('location_id');
             $table->unsignedBigInteger('work_type_id')->nullable();
             $table->text('report')->nullable();
+            $table->integer('minutes')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 

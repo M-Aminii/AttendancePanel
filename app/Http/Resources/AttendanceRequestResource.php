@@ -30,7 +30,8 @@ class AttendanceRequestResource extends JsonResource
             'attendance_date' => Jalalian::fromDateTime($this->attendance_date)->format('Y/m/d'),
             'records' => $records,
             'status' => $this->status,
-            'created_at' => $this->created_at
+            'created_at' => $this->created_at,
+            'created_time' => Jalalian::fromDateTime($this->created_at)->format('Y/m/d H:i'),
         ];
     }
 }

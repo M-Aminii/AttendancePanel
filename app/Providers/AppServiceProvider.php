@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        AttendanceRecord::observe(AttendanceRecordObserver::class);
+        //AttendanceRecord::observe(AttendanceRecordObserver::class);
 
         JsonResource::withoutWrapping();
     }

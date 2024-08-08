@@ -8,7 +8,6 @@ use App\Http\Requests\Attendance\UpdateAttendanceRequest;
 use App\Http\Resources\AttendanceResource;
 use App\Models\Attendance;
 use App\Models\AttendanceRecord;
-use App\Models\LocationAttendance;
 use Carbon\Carbon;
 use Morilog\Jalali\CalendarUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,183 +37,7 @@ class AttendanceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-/*    public function store(CreateAttendanceRequest $request)
-    {
-        $data = $request->validated();
-
-
-        try {
-            DB::beginTransaction();
-
-            $currentDate = Carbon::now()->toDateString();
-
-            // بررسی موجود بودن رکورد حضور برای کاربر در همان روز
-            $existingAttendance = Attendance::where('user_id', auth()->id())
-                ->whereDate('created_at', $currentDate)
-                ->first();
-
-            if ($existingAttendance) {
-                return response()->json(['message' => 'ساعت ورود و خروج امروز از قبل ثبت شده است.'], 409);
-            }
-
-            $jsonData = json_encode($request->records);
-
-            // ایجاد رکورد جدید در جدول attendance
-            $attendance = Attendance::create([
-                'user_id' => auth()->id(),
-                'attendance_details' => $jsonData,
-                'is_finalized' => false,
-            ]);
-
-
-            foreach ($data['records'] as $validatedData) {
-
-                $entryTime = $validatedData['entry_time'];
-                $exitTime = $validatedData['exit_time'];
-
-                // محاسبه مقدار key برای رکورد جدید
-                $currentMaxKey = AttendanceRecord::where('attendance_id', $attendance->id)->max('key');
-                $newKey = $currentMaxKey ? $currentMaxKey + 1 : 1;
-
-                AttendanceRecord::create([
-                    'attendance_id' => $attendance->id,
-                    'user_id' => auth()->id(),
-                    'key' => $newKey,
-                    'entry_time' => $entryTime,
-                    'exit_time' => $exitTime,
-                    'location_id' => $validatedData['location_id'],
-                    'work_type_id' => $validatedData['work_type_id'],
-                    'report' => $validatedData['report'],
-                ]);
-            }
-
-            DB::commit();
-            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            // Log the exception for further investigation
-            Log::error('Attendance store error: '.$exception->getMessage());
-            return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
-        }
-    }*/
-    /*public function store(CreateAttendanceRequest $request)
-    {
-        $data = $request->validated();
-
-        try {
-            DB::beginTransaction();
-
-            // تبدیل تاریخ شمسی به میلادی
-            $jalaliDate = $data['attendance_date'];
-            $gregorianDate = CalendarUtils::createCarbonFromFormat('Y/m/d', $jalaliDate)->toDateString();
-
-            // بررسی موجود بودن رکورد حضور برای کاربر در همان روز
-            $existingAttendance = Attendance::where('user_id', auth()->id())
-                ->whereDate('attendance_date', $gregorianDate)
-                ->first();
-
-            if ($existingAttendance) {
-                return response()->json(['message' => 'ساعت ورود و خروج امروز از قبل ثبت شده است.'], 409);
-            }
-
-            $jsonData = json_encode($request->records);
-
-            // ایجاد رکورد جدید در جدول attendance
-            $attendance = Attendance::create([
-                'user_id' => auth()->id(),
-                'attendance_details' => $jsonData,
-                'attendance_date' => $gregorianDate,
-                'is_finalized' => false,
-            ]);
-
-            foreach ($data['records'] as $validatedData) {
-                $entryTime = $validatedData['entry_time'];
-                $exitTime = $validatedData['exit_time'];
-
-                // محاسبه مقدار key برای رکورد جدید
-                $currentMaxKey = AttendanceRecord::where('attendance_id', $attendance->id)->max('key');
-                $newKey = $currentMaxKey ? $currentMaxKey + 1 : 1;
-
-                AttendanceRecord::create([
-                    'attendance_id' => $attendance->id,
-                    'user_id' => auth()->id(),
-                    'key' => $newKey,
-                    'entry_time' => $entryTime,
-                    'exit_time' => $exitTime,
-                    'location_id' => $validatedData['location_id'],
-                    'work_type_id' => $validatedData['work_type_id'],
-                    'report' => $validatedData['report'],
-                ]);
-            }
-
-            DB::commit();
-            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            // Log the exception for further investigation
-            Log::error('Attendance store error: '.$exception->getMessage());
-            return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
-        }
-    }*/
-
-   /* public function store(CreateAttendanceRequest $request)
-    {
-        $data = $request->validated();
-
-        try {
-            DB::beginTransaction();
-            // تنظیم تاریخ میلادی امروز
-            $currentDate = Carbon::now()->toDateString();
-
-            // بررسی موجود بودن رکورد حضور برای کاربر در همان روز
-            $existingAttendance = Attendance::where('user_id', auth()->id())
-                ->whereDate('attendance_date', $currentDate)
-                ->first();
-
-            if ($existingAttendance) {
-                return response()->json(['message' => 'ساعت ورود و خروج امروز از قبل ثبت شده است.'], 409);
-            }
-
-            $jsonData = json_encode($request->records);
-
-            // ایجاد رکورد جدید در جدول attendance
-            $attendance = Attendance::create([
-                'user_id' => auth()->id(),
-                'attendance_details' => $jsonData,
-                'attendance_date' => $currentDate,
-                'is_finalized' => false,
-            ]);
-
-            foreach ($data['records'] as $validatedData) {
-                $entryTime = $validatedData['entry_time'];
-                $exitTime = $validatedData['exit_time'];
-
-                // محاسبه مقدار key برای رکورد جدید
-                $currentMaxKey = AttendanceRecord::where('attendance_id', $attendance->id)->max('key');
-                $newKey = $currentMaxKey ? $currentMaxKey + 1 : 1;
-
-                AttendanceRecord::create([
-                    'attendance_id' => $attendance->id,
-                    'user_id' => auth()->id(),
-                    'key' => $newKey,
-                    'entry_time' => $entryTime,
-                    'exit_time' => $exitTime,
-                    'location_id' => $validatedData['location_id'],
-                    'work_type_id' => $validatedData['work_type_id'],
-                    'report' => $validatedData['report'],
-                ]);
-            }
-
-            DB::commit();
-            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            // Log the exception for further investigation
-            Log::error('Attendance store error: '.$exception->getMessage());
-            return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
-        }
-    }*/
-    public function store(CreateAttendanceRequest $request)
+    /*    public function store(CreateAttendanceRequest $request)
     {
         $data = $request->validated();
 
@@ -292,8 +115,99 @@ class AttendanceController extends Controller
             Log::error('Attendance store error: '.$exception->getMessage());
             return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
         }
-    }
+    }*/
 
+    public function store(CreateAttendanceRequest $request)
+    {
+        $data = $request->validated();
+
+        try {
+            DB::beginTransaction();
+            // تنظیم تاریخ میلادی امروز
+            $currentDate = Carbon::now()->toDateString();
+
+            // بررسی موجود بودن رکورد حضور برای کاربر در همان روز
+            $existingAttendance = Attendance::where('user_id', auth()->id())
+                ->whereDate('attendance_date', $currentDate)
+                ->first();
+
+            if ($existingAttendance) {
+                return response()->json(['message' => 'ساعت ورود و خروج امروز از قبل ثبت شده است.'], 409);
+            }
+
+            $jsonData = json_encode($request->records);
+
+            // ایجاد رکورد جدید در جدول attendance
+            $attendance = Attendance::create([
+                'user_id' => auth()->id(),
+                'attendance_details' => $jsonData,
+                'attendance_date' => $currentDate,
+                'is_finalized' => false,
+                'total_minutes' => 0, // مقدار اولیه صفر برای total_minutes
+            ]);
+
+            $totalMinutes = 0; // متغیر برای ذخیره مجموع دقایق
+
+            foreach ($data['records'] as $validatedData) {
+                $entryTime = $validatedData['entry_time'];
+                $exitTime = $validatedData['exit_time'];
+
+// بررسی هم‌پوشانی با زمان‌های موجود
+                $overlap = AttendanceRecord::where('attendance_id', $attendance->id)
+                    ->where(function ($query) use ($entryTime, $exitTime) {
+                        $query->where(function ($query) use ($entryTime, $exitTime) {
+                            $query->where('entry_time', '<', $exitTime)
+                                ->where('exit_time', '>', $entryTime);
+                        })
+                            ->orWhere(function ($query) use ($entryTime, $exitTime) {
+                                $query->where('entry_time', '<=', $entryTime)
+                                    ->where('exit_time', '>=', $exitTime);
+                            });
+                    })
+                    ->exists();
+
+                if ($overlap) {
+                    return response()->json(['message' => 'زمان‌های وارد شده با هم تداخل دارند.'], 409);
+                }
+
+
+                // محاسبه مقدار key برای رکورد جدید
+                $currentMaxKey = AttendanceRecord::where('attendance_id', $attendance->id)->max('key');
+                $newKey = $currentMaxKey ? $currentMaxKey + 1 : 1;
+
+                // محاسبه مدت زمان بین entry_time و exit_time به دقیقه
+                $entry = Carbon::parse($entryTime);
+                $exit = Carbon::parse($exitTime);
+                $minutes = $exit->diffInMinutes($entry);
+                $totalMinutes += $minutes;
+
+                AttendanceRecord::create([
+                    'attendance_id' => $attendance->id,
+                    'user_id' => auth()->id(),
+                    'key' => $newKey,
+                    'entry_time' => $entryTime,
+                    'exit_time' => $exitTime,
+                    'location_id' => $validatedData['location_id'],
+                    'work_type_id' => $validatedData['work_type_id'],
+                    'report' => $validatedData['report'],
+                    'minutes' => $minutes, // ذخیره مدت زمان به دقیقه
+                ]);
+            }
+
+            // به‌روزرسانی مقدار total_minutes در رکورد attendance
+            $attendance->update([
+                'total_minutes' => $totalMinutes,
+            ]);
+
+            DB::commit();
+            return response()->json(['message' => 'ساعت ورود و خروج با موفقیت ثبت شد'], 201);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            // Log the exception for further investigation
+            Log::error('Attendance store error: '.$exception->getMessage());
+            return response()->json(['message' => 'خطایی به وجود آمده است، لطفا دوباره تلاش کنید.'], 500);
+        }
+    }
 
 
     /**

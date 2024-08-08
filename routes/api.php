@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceRequestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,12 @@ Route::group(['middleware' => ['auth:api'],'prefix' => 'Personnel'], function ()
         Route::patch('/{id}', [AttendanceRequestController::class, 'update']);
         Route::get('/{id}', [AttendanceRequestController::class, 'show']);
         Route::patch('/status/{id}', [AttendanceRequestController::class, 'changeStatus']);
+    });
+    Route::group(['prefix' => '/location'], function () {
+        Route::post('/', [LocationController::class, 'store']);
+        Route::get('/list', [LocationController::class, 'index']);
+        Route::patch('/{id}', [LocationController::class, 'update']);
+        Route::get('/{id}', [LocationController::class, 'show']);
 
     });
 

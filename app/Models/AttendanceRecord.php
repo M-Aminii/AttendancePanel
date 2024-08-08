@@ -10,7 +10,7 @@ class AttendanceRecord extends Model
     use HasFactory;
 
     protected $fillable = [
-        'key','user_id','attendance_id', 'entry_time', 'exit_time', 'location_id', 'work_type_id', 'report',
+        'key','user_id','attendance_id', 'entry_time', 'exit_time', 'location_id', 'work_type_id', 'report','minutes'
     ];
 
     protected $casts = [

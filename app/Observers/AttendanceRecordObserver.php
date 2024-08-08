@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class AttendanceRecordObserver
 {
-    public function creating(AttendanceRecord $record)
+    /*public function creating(AttendanceRecord $record)
     {
         // پیدا کردن حضور مربوط به روز قبلی
         $previousAttendance = Attendance::where('user_id', $record->user_id)
@@ -43,6 +43,7 @@ class AttendanceRecordObserver
             // ذخیره‌سازی در جدول location_attendances
             foreach ($locationMinutes as $locationId => $minutes) {
                 \App\Models\LocationAttendance::create([
+                    'user_id' => $previousAttendance->user_id,
                     'attendance_id' => $previousAttendance->id,
                     'location_id' => $locationId,
                     'minutes' => $minutes,
@@ -52,6 +53,6 @@ class AttendanceRecordObserver
             // به‌روزرسانی فیلد total_minutes در جدول attendance
             $previousAttendance->update(['total_minutes' => $totalMinutes]);
         }
-    }
+    }*/
 
 }
